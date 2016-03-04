@@ -168,11 +168,18 @@ blanket.defaultReporter = function(coverage){
     var modulePattern = _blanket.options("modulePattern");
     var modulePatternRegex = ( modulePattern ? new RegExp(modulePattern) : null );
 
-    for(var file in files)
-    {
+    var fileNames = [];
+    for (var file in files) {
         if (!files.hasOwnProperty(file)) {
             continue;
         }
+        fileNames.push(file);
+    }
+    fileNames.sort();
+
+    for(var fileIdx = 0; fileIdx < fileNames.length; ++fileIdx)
+    {
+        file = fileNames[fileIdx];
 
         fileNumber++;
 
