@@ -5101,11 +5101,18 @@ blanket.defaultReporter = function(coverage){
     var modulePattern = _blanket.options("modulePattern");
     var modulePatternRegex = ( modulePattern ? new RegExp(modulePattern) : null );
 
-    for(var file in files)
-    {
+    var fileNames = [];
+    for (var file in files) {
         if (!files.hasOwnProperty(file)) {
             continue;
         }
+        fileNames.push(file);
+    }
+    fileNames.sort();
+
+    for(var fileIdx = 0; fileIdx < fileNames.length; ++fileIdx)
+    {
+        file = fileNames[fileIdx];
 
         fileNumber++;
 
@@ -5304,10 +5311,10 @@ blanket.defaultReporter = function(coverage){
                                 }
                             }
                         }
-                        if (es.nodeName === "data-cover-testReadyCallback"){
+                        if (es.nodeName.toLowerCase() === "data-cover-testreadycallback"){
                             newOptions.testReadyCallback = es.nodeValue;
                         }
-                        if (es.nodeName === "data-cover-customVariable"){
+                        if (es.nodeName.toLowerCase() === "data-cover-customvariable"){
                             newOptions.customVariable = es.nodeValue;
                         }
                         if (es.nodeName === "data-cover-flags"){
@@ -5352,6 +5359,7 @@ blanket.defaultReporter = function(coverage){
         blanket._commonjs = {};
     }
 })();
+
 (function(_blanket){
 _blanket.extend({
     utils: {
@@ -5392,13 +5400,19 @@ _blanket.extend({
         },
         collectPageScripts: function(){
             var toArray = Array.prototype.slice;
-            var scripts = toArray.call(document.scripts);
             var selectedScripts=[],scriptNames=[];
             var filter = _blanket.options("filter");
+
+            function selectAllScripts() {
+              var browserScripts = toArray.call(document.scripts);
+              var blanketScripts = toArray.call(document.getElementsByTagName('blanket'));
+              return browserScripts.concat(blanketScripts);
+            }
+
             if(filter != null){
                 //global filter in place, data-cover-only
                 var antimatch = _blanket.options("antifilter");
-                selectedScripts = toArray.call(document.scripts)
+                selectedScripts = selectAllScripts()
                                 .filter(function(s){
                                     return toArray.call(s.attributes).filter(function(sn){
                                         return sn.nodeName === "src" && _blanket.utils.matchPatternAttribute(sn.nodeValue,filter) &&
@@ -5406,7 +5420,7 @@ _blanket.extend({
                                     }).length === 1;
                                 });
             }else{
-                selectedScripts = toArray.call(document.querySelectorAll("script[data-cover]"));
+                selectedScripts = toArray.call(document.querySelectorAll("script[data-cover], blanket"));
             }
             scriptNames = selectedScripts.map(function(s){
                                     return _blanket.utils.qualifyURL(
